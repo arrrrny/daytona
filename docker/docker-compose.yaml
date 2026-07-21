@@ -176,7 +176,7 @@ services:
     ports:
       - 5556:5556
     healthcheck:
-      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:5556/dex/.well-known/openid-configuration"]
+      test: ['CMD', 'wget', '--spider', '--quiet', 'http://localhost:5556/dex/.well-known/openid-configuration']
 
   db:
     image: postgres:18
@@ -271,6 +271,7 @@ services:
       - daytona-network
     ports:
       - 9001:9001
+      - 9000:9000
 
   jaeger:
     image: jaegertracing/all-in-one:1.67.0
