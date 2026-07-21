@@ -105,3 +105,6 @@ go.work.sum
 result
 result-*
 .envrc.local
+docker/docker-compose.zuzu.yaml
+zikzak-sandbox/
+docker/dex/config.zuzu.yaml
