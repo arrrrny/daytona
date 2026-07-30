@@ -6,6 +6,7 @@ api_git.go
 api_info.go
 api_interpreter.go
 api_lsp.go
+api_mcp.go
 api_port.go
 api_process.go
 api_server.go

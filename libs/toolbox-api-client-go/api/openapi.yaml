@@ -1724,6 +1724,21 @@ paths:
       summary: Get workspace symbols
       tags:
       - lsp
+  /mcp:
+    post:
+      description: "Model Context Protocol endpoint (streamable-HTTP transport) exposing\
+        \ sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files.\
+        \ POST sends JSON-RPC messages (responses are SSE events per the transport);\
+        \ GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization:\
+        \ Bearer <token>) exactly like /process/exec/connect."
+      operationId: MCP
+      responses:
+        "200":
+          content: {}
+          description: OK
+      summary: MCP endpoint (streamable HTTP)
+      tags:
+      - mcp
   /port:
     get:
       description: Get a list of all currently active ports
@@ -1782,6 +1797,30 @@ paths:
       tags:
       - process
       x-codegen-request-body-name: request
+  /process/exec/connect:
+    get:
+      description: "SSH-equivalent exec channel over HTTPS. After the upgrade the\
+        \ client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\"\
+        :\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted,\
+        \ an interactive login shell is started (like bare `ssh host`). Subsequent\
+        \ client frames: stdin, signal, resize, stdin_eof. Server frames: stdout,\
+        \ stderr, exit (always last, before close), error. One connection = one exec;\
+        \ shell state persists for the lifetime of the connection."
+      operationId: ExecConnect
+      parameters:
+      - description: SSH access token (alternative to the Authorization header for
+          WS clients that cannot set headers)
+        in: query
+        name: token
+        schema:
+          type: string
+      responses:
+        "101":
+          content: {}
+          description: Switching Protocols - WebSocket connection established
+      summary: Execute a command or open a shell over a single WebSocket connection
+      tags:
+      - process
   /process/execute:
     post:
       description: Execute a shell command and return the output and exit code

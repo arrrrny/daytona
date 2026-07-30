@@ -114,6 +114,19 @@ func (s *PTYSession) broadcast(b []byte) {
 		}
 	}
 	s.clientsMu.RUnlock()
+
+	// Fan out to non-WebSocket output subscribers; drop slow ones (same
+	// policy as WebSocket clients) to avoid stalling the PTY read loop.
+	// broadcast is only called from ptyReadLoop, so removing/closing a slow
+	// subscriber here cannot race with a concurrent send on the same channel.
+	for key, ch := range s.outSubs.Items() {
+		select {
+		case ch <- b:
+		default:
+			s.outSubs.Remove(key)
+			close(ch)
+		}
+	}
 }
 
 // closeClientsWithExitCode closes all WebSocket connections with structured exit data

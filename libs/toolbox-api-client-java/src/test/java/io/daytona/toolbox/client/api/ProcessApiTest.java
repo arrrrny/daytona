@@ -131,6 +131,20 @@ public class ProcessApiTest {
     }
 
     /**
+     * Execute a command or open a shell over a single WebSocket connection
+     *
+     * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\&quot;type\&quot;:\&quot;start\&quot;,\&quot;command\&quot;:\&quot;...\&quot;,\&quot;cwd\&quot;:\&quot;...\&quot;,\&quot;env\&quot;:{...},\&quot;cols\&quot;:...,\&quot;rows\&quot;:...}. When command is omitted, an interactive login shell is started (like bare &#x60;ssh host&#x60;). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection &#x3D; one exec; shell state persists for the lifetime of the connection.
+     *
+     * @throws ApiException if the Api call fails
+     */
+    @Test
+    public void execConnectTest() throws ApiException {
+        String token = null;
+        api.execConnect(token);
+        // TODO: test validations
+    }
+
+    /**
      * Execute a command
      *
      * Execute a shell command and return the output and exit code

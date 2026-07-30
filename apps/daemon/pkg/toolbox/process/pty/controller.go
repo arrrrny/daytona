@@ -90,6 +90,8 @@ func (p *PTYController) CreatePTYSession(c *gin.Context) {
 			LazyStart: req.LazyStart,
 		},
 		clients: cmap.New[*wsClient](),
+		outSubs: cmap.New[chan []byte](),
+		done:    make(chan struct{}),
 		logger:  p.logger.With(slog.String("sessionId", req.ID)),
 	}
 

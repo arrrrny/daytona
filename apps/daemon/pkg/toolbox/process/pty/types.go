@@ -57,6 +57,15 @@ type PTYSession struct {
 	clients   cmap.ConcurrentMap[string, *wsClient]
 	clientsMu sync.RWMutex
 
+	// output subscribers — non-WebSocket consumers (e.g. exec-over-WS
+	// bridging) that receive the same broadcast stream as attached clients
+	outSubs cmap.ConcurrentMap[string, chan []byte]
+
+	// done is closed by the reaper once the PTY process has exited;
+	// exitCode holds the resulting exit code (SSH exit-status semantics).
+	done     chan struct{}
+	exitCode int
+
 	// funnel of all client inputs -> single PTY writer (preserves ordering)
 	inCh chan []byte
 

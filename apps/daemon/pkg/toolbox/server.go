@@ -38,9 +38,11 @@ import (
 	"github.com/daytonaio/daemon/pkg/toolbox/fs"
 	"github.com/daytonaio/daemon/pkg/toolbox/git"
 	"github.com/daytonaio/daemon/pkg/toolbox/lsp"
+	toolboxmcp "github.com/daytonaio/daemon/pkg/toolbox/mcp"
 	"github.com/daytonaio/daemon/pkg/toolbox/port"
 	"github.com/daytonaio/daemon/pkg/toolbox/process"
 	"github.com/daytonaio/daemon/pkg/toolbox/process/coderun"
+	execws "github.com/daytonaio/daemon/pkg/toolbox/process/exec"
 	"github.com/daytonaio/daemon/pkg/toolbox/process/interpreter"
 	"github.com/daytonaio/daemon/pkg/toolbox/process/pty"
 	"github.com/daytonaio/daemon/pkg/toolbox/process/session"
@@ -167,6 +169,12 @@ func (s *server) Start() error {
 
 	r.GET("/version", s.GetVersion)
 
+	// MCP endpoint (streamable HTTP) — v1 sandbox toolset for MCP-native agents
+	mcpServer := toolboxmcp.NewMCPServer(s.logger, s.WorkDir, s.sessionService)
+	r.POST("/mcp", mcpServer.HandleMCP)
+	r.GET("/mcp", mcpServer.HandleMCP)
+	r.DELETE("/mcp", mcpServer.HandleMCP)
+
 	// keep /project-dir old behavior for backward compatibility
 	r.GET("/project-dir", s.GetUserHomeDir)
 	r.GET("/user-home-dir", s.GetUserHomeDir)
@@ -201,6 +209,10 @@ func (s *server) Start() error {
 	{
 		processController.POST("/execute", process.ExecuteCommand(processLogger))
 		processController.POST("/code-run", coderun.CodeRun(processLogger))
+
+		// SSH-equivalent exec over a single WebSocket connection
+		execController := execws.NewExecController(s.logger, s.WorkDir, s.sessionService)
+		processController.GET("/exec/connect", execController.Connect)
 
 		sessionController := session.NewSessionController(s.logger, s.configDir, s.sessionService)
 		sessionGroup := processController.Group("/session")

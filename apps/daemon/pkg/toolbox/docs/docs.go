@@ -2452,6 +2452,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/mcp": {
+            "post": {
+                "description": "Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer \u003ctoken\u003e) exactly like /process/exec/connect.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    " text/event-stream"
+                ],
+                "tags": [
+                    "mcp"
+                ],
+                "summary": "MCP endpoint (streamable HTTP)",
+                "operationId": "MCP",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/port": {
             "get": {
                 "description": "Get a list of all currently active ports",
@@ -2534,6 +2556,29 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/CodeRunResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/process/exec/connect": {
+            "get": {
+                "description": "SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare ` + "`" + `ssh host` + "`" + `). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.",
+                "tags": [
+                    "process"
+                ],
+                "summary": "Execute a command or open a shell over a single WebSocket connection",
+                "operationId": "ExecConnect",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "SSH access token (alternative to the Authorization header for WS clients that cannot set headers)",
+                        "name": "token",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols - WebSocket connection established"
                     }
                 }
             }

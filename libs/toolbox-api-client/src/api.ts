@@ -20,6 +20,7 @@ export * from './api/git-api';
 export * from './api/info-api';
 export * from './api/interpreter-api';
 export * from './api/lsp-api';
+export * from './api/mcp-api';
 export * from './api/port-api';
 export * from './api/process-api';
 export * from './api/server-api';

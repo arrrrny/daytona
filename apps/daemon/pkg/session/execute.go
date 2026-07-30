@@ -216,6 +216,9 @@ var cmdWrapperFormat string = `
 	%s
 	ip_pid=$!
 
+	# Record the input-holder PID so CloseInput can deliver stdin EOF later.
+	echo "$ip_pid" > "$dir/input_holder.pid" 2>/dev/null || true
+
 	# Run your command from file (avoids heredoc parsing issues with pipe-fed shells)
 	{ . %q; } < "$ip" > "$sp" 2> "$ep"
 	_ec=$?

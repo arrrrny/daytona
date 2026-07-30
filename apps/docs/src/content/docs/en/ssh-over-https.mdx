@@ -1,0 +1,114 @@
+---
+title: SSH over HTTPS
+description: Give agents SSH-equivalent sandbox access over plain HTTPS using SSH access tokens — a WebSocket exec channel and an MCP endpoint exposed by the sandbox toolbox.
+---
+
+Daytona sandboxes expose two HTTPS endpoints that provide SSH-equivalent access using the same token-based authentication as [SSH Access](/docs/en/ssh-access). They are designed for AI agents and automation that cannot open a raw SSH connection but can speak WebSocket or HTTP:
+
+- **WebSocket exec** (`/process/exec/connect`) — an interactive exec channel with SSH channel semantics: run a command and stream `stdin`/`stdout`/`stderr`, send signals, resize the terminal, or drop into a full login shell.
+- **MCP** (`/mcp`) — a [Model Context Protocol](https://modelcontextprotocol.io) streamable-HTTP endpoint with tools for command execution and file operations.
+
+Both endpoints are proxied per sandbox and require an SSH access token on every connection.
+
+## Get an SSH access token
+
+Create a token via the [Dashboard, CLI, or API](/docs/en/ssh-access) — for example:
+
+```bash
+curl -X POST "https://app.daytona.io/api/sandboxes/{SANDBOX_ID}/ssh-access?expiresInMinutes=360" \
+  -H "Authorization: Bearer $DAYTONA_API_KEY"
+```
+
+The response contains a `token` and a ready-to-use SSH command. The same token authenticates the HTTPS endpoints below.
+
+Tokens are validated on **every** new connection, so revoking a token (or letting it expire) immediately blocks new connections.
+
+## Endpoints
+
+| Endpoint | URL |
+| -------- | --- |
+| WebSocket exec | `wss://<proxy-host>/toolbox/{SANDBOX_ID}/process/exec/connect` |
+| MCP (streamable HTTP) | `https://<proxy-host>/toolbox/{SANDBOX_ID}/mcp` |
+
+Authenticate with either:
+
+- `Authorization: Bearer <SSH_ACCESS_TOKEN>` header, or
+- `?token=<SSH_ACCESS_TOKEN>` query parameter (for WebSocket clients that cannot set headers, e.g. browsers)
+
+The sandbox must be started. Connecting to a sandbox in any other state fails with an explicit message, e.g.:
+
+```
+Sandbox is not started (state: stopped). Please start the sandbox before attempting to connect.
+```
+
+Sandbox activity is reported when the connection opens and periodically while it stays open, keeping the sandbox from idling out — same as an SSH session.
+
+## WebSocket exec protocol
+
+The connection exchanges JSON text frames. The first client frame must be `start`; the server closes the connection after sending the terminal `exit` (or `error`) frame.
+
+### Client → server
+
+| Frame | Fields | Description |
+| ----- | ------ | ----------- |
+| `start` | `command?`, `cwd?`, `env?`, `cols?`, `rows?` | Starts the session. With `command`, runs it non-interactively. Without `command`, spawns an interactive login shell (`bash -l`, falling back to `sh`). `cols`/`rows` set the shell terminal size (default 80×24). |
+| `stdin` | `data` | Bytes written to the process stdin (or the shell terminal). |
+| `signal` | `signal` | Signal name or number (`SIGINT`, `SIGTERM`, `9`, ...). In shell mode, `SIGINT`/`SIGQUIT`/`SIGTSTP` are delivered as terminal control characters (`^C`/`^\`/`^Z`). |
+| `resize` | `cols`, `rows` | Changes the shell terminal size (shell mode only). |
+| `stdin_eof` | — | Closes stdin (sends EOF). |
+
+### Server → client
+
+| Frame | Fields | Description |
+| ----- | ------ | ----------- |
+| `stdout` | `data` | Chunk of standard output (shell mode: merged terminal output). |
+| `stderr` | `data` | Chunk of standard error (command mode only). |
+| `exit` | `exitCode` | Process exited. Always the last frame before the server closes the connection. A command interrupted by `SIGINT` reports `130`, matching SSH. |
+| `error` | `message` | Protocol or startup error. Terminal. |
+
+### Example (Node.js)
+
+```js
+import WebSocket from 'ws'
+
+const ws = new WebSocket(
+  `wss://proxy.daytona.works/toolbox/${sandboxId}/process/exec/connect?token=${sshToken}`,
+)
+
+ws.on('open', () => {
+  ws.send(JSON.stringify({ type: 'start', command: 'sleep 60' }))
+  setTimeout(() => ws.send(JSON.stringify({ type: 'signal', signal: 'SIGINT' })), 1000)
+})
+
+ws.on('message', (data) => {
+  const frame = JSON.parse(data)
+  if (frame.type === 'exit') console.log('exit code:', frame.exitCode) // 130
+})
+```
+
+Multiple connections to the same sandbox are independent — each gets its own process or shell.
+
+## MCP endpoint
+
+`POST /toolbox/{SANDBOX_ID}/mcp` speaks the MCP streamable-HTTP transport. Requests must accept both JSON and server-sent events:
+
+```bash
+curl -X POST "https://proxy.daytona.works/toolbox/$SANDBOX_ID/mcp" \
+  -H "Authorization: Bearer $SSH_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"exec_command","arguments":{"command":"echo hello"}}}'
+```
+
+The server is stateless: `tools/call` works directly without an `initialize` handshake, which keeps plain-HTTP clients simple.
+
+### Tools
+
+| Tool | Arguments | Description |
+| ---- | --------- | ----------- |
+| `exec_command` | `command`, `cwd?`, `env?`, `timeout?` | Runs a shell command and returns its stdout, stderr, and exit code. Default timeout 120s (max 3600s). |
+| `fs_read_file` | `path` | Reads a file (UTF-8 text, base64 for binary). |
+| `fs_write_file` | `path`, `content` | Writes a file, creating parent directories as needed. |
+| `fs_list_files` | `path?` | Lists a directory with name, size, type, mode, and modification time. |
+
+Any MCP client that supports streamable-HTTP servers can connect by pointing at the endpoint with the token in the `Authorization` header.

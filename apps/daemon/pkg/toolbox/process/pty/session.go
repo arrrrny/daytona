@@ -106,8 +106,15 @@ func (s *PTYSession) start() error {
 
 		s.mu.Lock()
 		s.info.Active = false
+		s.exitCode = exitCode
 		sessionID := s.info.ID
 		s.mu.Unlock()
+
+		// Unblock WaitExit callers (e.g. exec-over-WS) — the reaper runs at
+		// most once per session because start() refuses to restart.
+		if s.done != nil {
+			close(s.done)
+		}
 
 		// Close WebSocket connections with exit code and reason
 		s.closeClientsWithExitCode(exitCode, exitReason)
