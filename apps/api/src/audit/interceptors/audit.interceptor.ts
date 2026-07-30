@@ -139,7 +139,7 @@ export class AuditInterceptor implements NestInterceptor {
     if (auditContext.targetIdFromRequest) {
       const targetId = auditContext.targetIdFromRequest(request)
       if (targetId) {
-        return targetId
+        return Array.isArray(targetId) ? targetId[0] : targetId
       }
     }
 

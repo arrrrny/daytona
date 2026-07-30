@@ -15,7 +15,7 @@ export const MASKED_AUDIT_VALUE = '********'
 export interface AuditContext {
   action: AuditAction
   targetType?: AuditTarget
-  targetIdFromRequest?: (req: Request) => string | null | undefined
+  targetIdFromRequest?: (req: Request) => string | string[] | null | undefined
   targetIdFromResult?: (result: any) => string | null | undefined
   requestMetadata?: Record<string, (req: Request) => any>
 }
