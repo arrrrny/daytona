@@ -480,6 +480,42 @@ export class SandboxController {
     return sandboxDto
   }
 
+  @Post(':sandboxIdOrName/force-stop')
+  @HttpCode(200)
+  @SkipThrottle({ authenticated: true })
+  @ThrottlerScope('sandbox-lifecycle')
+  @ApiOperation({
+    summary: 'Force-stop a sandbox stuck in a state change',
+    description:
+      'Releases the state-change lock of a sandbox stuck in a transient state (e.g. creating, snapshotting) after a runner failure. The sandbox is moved to an error state and can then be recovered or deleted.',
+    operationId: 'forceStopSandbox',
+  })
+  @ApiParam({
+    name: 'sandboxIdOrName',
+    description: 'ID or name of the sandbox',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Sandbox has been force-stopped and moved to error state',
+    type: SandboxDto,
+  })
+  @UseGuards(OrganizationAuthContextGuard, SandboxAccessGuard)
+  @RequiredOrganizationResourcePermissions([OrganizationResourcePermission.WRITE_SANDBOXES])
+  @Audit({
+    action: AuditAction.FORCE_STOP,
+    targetType: AuditTarget.SANDBOX,
+    targetIdFromRequest: (req) => req.params.sandboxIdOrName,
+    targetIdFromResult: (result: SandboxDto) => result?.id,
+  })
+  async forceStopSandbox(
+    @IsOrganizationAuthContext() authContext: OrganizationAuthContext,
+    @Param('sandboxIdOrName') sandboxIdOrName: string,
+  ): Promise<SandboxDto> {
+    const sandbox = await this.sandboxService.forceStop(sandboxIdOrName, authContext.organizationId)
+    return this.sandboxService.toSandboxDto(sandbox)
+  }
+
   @Post(':sandboxIdOrName/start')
   @HttpCode(200)
   @SkipThrottle({ authenticated: true })
