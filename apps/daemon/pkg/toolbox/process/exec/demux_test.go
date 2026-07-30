@@ -66,6 +66,24 @@ func TestStreamDemuxSplitMarkerAcrossChunks(t *testing.T) {
 	}
 }
 
+func TestStreamDemuxIncompleteMarkerAtEOF(t *testing.T) {
+	capture := &demuxCapture{}
+	d := newStreamDemux(capture.emit)
+
+	// A trailing marker prefix that never completes must be emitted as
+	// regular stream content on Flush, not discarded or treated as a marker.
+	prefix := string(log.STDOUT_PREFIX)
+	d.Write([]byte("content" + prefix[:len(prefix)-1]))
+	d.Flush()
+
+	if got := capture.stdout.String(); got != "content"+prefix[:len(prefix)-1] {
+		t.Fatalf("unexpected stdout %q", got)
+	}
+	if got := capture.stderr.String(); got != "" {
+		t.Fatalf("unexpected stderr %q", got)
+	}
+}
+
 func TestStreamDemuxMatchesReferenceDemux(t *testing.T) {
 	capture := &demuxCapture{}
 	d := newStreamDemux(capture.emit)

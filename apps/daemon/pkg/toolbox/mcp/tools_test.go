@@ -154,6 +154,23 @@ func TestFsReadFileToolNotFound(t *testing.T) {
 	}
 }
 
+func TestFsReadFileToolRejectsSpecialFile(t *testing.T) {
+	m := newTestMCPServer(t)
+
+	// /dev/zero reports size 0, so a pre-read Stat check alone would pass and
+	// an unbounded read would allocate until OOM.
+	result, _, err := m.readFile(context.Background(), nil, readFileArgs{Path: "/dev/zero"})
+	if err != nil {
+		t.Fatalf("readFile failed: %v", err)
+	}
+	if !result.IsError {
+		t.Fatalf("expected error result for special file")
+	}
+	if got := textOf(t, result); !strings.Contains(got, "not a regular file") {
+		t.Fatalf("expected 'not a regular file' error, got %q", got)
+	}
+}
+
 func TestFsListFilesTool(t *testing.T) {
 	m := newTestMCPServer(t)
 	dir := t.TempDir()

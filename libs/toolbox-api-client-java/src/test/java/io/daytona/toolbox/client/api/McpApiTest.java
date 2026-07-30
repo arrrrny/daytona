@@ -31,15 +31,42 @@ public class McpApiTest {
     private final McpApi api = new McpApi();
 
     /**
-     * MCP endpoint (streamable HTTP)
+     * MCP endpoint — terminate the session (streamable HTTP)
      *
-     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect.
+     * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
      *
      * @throws ApiException if the Api call fails
      */
     @Test
-    public void mCPTest() throws ApiException {
-        api.mCP();
+    public void mCPDeleteTest() throws ApiException {
+        api.mCPDelete();
+        // TODO: test validations
+    }
+
+    /**
+     * MCP endpoint — open the SSE stream (streamable HTTP)
+     *
+     * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+     *
+     * @throws ApiException if the Api call fails
+     */
+    @Test
+    public void mCPGetTest() throws ApiException {
+        api.mCPGet();
+        // TODO: test validations
+    }
+
+    /**
+     * MCP endpoint — send JSON-RPC messages (streamable HTTP)
+     *
+     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+     *
+     * @throws ApiException if the Api call fails
+     */
+    @Test
+    public void mCPPostTest() throws ApiException {
+        Object message = null;
+        api.mCPPost(message);
         // TODO: test validations
     }
 

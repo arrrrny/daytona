@@ -38,7 +38,7 @@ func isAgentAccessPath(targetPath string) bool {
 func (p *Proxy) getSshAccessTokenValid(ctx context.Context, sandboxId string, token string) (*bool, error) {
 	isValid := false
 	err := utils.RetryWithExponentialBackoff(ctx, "getSshAccessTokenValid", proxyMaxRetries, proxyBaseDelay, proxyMaxDelay, func() error {
-		validation, resp, err := p.apiclient.SandboxAPI.ValidateSshAccess(context.Background()).Token(token).Execute()
+		validation, resp, err := p.apiclient.SandboxAPI.ValidateSshAccess(ctx).Token(token).Execute()
 		if resp != nil && resp.StatusCode == http.StatusOK {
 			isValid = validation != nil && validation.Valid && validation.SandboxId == sandboxId
 			return nil

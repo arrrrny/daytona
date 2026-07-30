@@ -69,17 +69,45 @@ func NewMCPServer(logger *slog.Logger, workDir string, sessionService *session_s
 	return m
 }
 
-// HandleMCP godoc
+// HandleMCPPost godoc
 //
-//	@Summary		MCP endpoint (streamable HTTP)
-//	@Description	Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
+//	@Summary		MCP endpoint — send JSON-RPC messages (streamable HTTP)
+//	@Description	Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
 //	@Tags			mcp
 //	@Accept			json
-//	@Produce		json, text/event-stream
-//	@Success		200
+//	@Produce		json,text/event-stream
+//	@Param			message	body	object	true	"JSON-RPC 2.0 request message (e.g. tools/call)"
+//	@Success		200		"JSON-RPC response or SSE event stream"
 //	@Router			/mcp [post]
 //
-//	@id				MCP
-func (m *MCPServer) HandleMCP(c *gin.Context) {
+//	@id				MCPPost
+func (m *MCPServer) HandleMCPPost(c *gin.Context) {
+	m.handler.ServeHTTP(c.Writer, c.Request)
+}
+
+// HandleMCPGet godoc
+//
+//	@Summary		MCP endpoint — open the SSE stream (streamable HTTP)
+//	@Description	Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+//	@Tags			mcp
+//	@Produce		text/event-stream
+//	@Success		200	"SSE event stream"
+//	@Router			/mcp [get]
+//
+//	@id				MCPGet
+func (m *MCPServer) HandleMCPGet(c *gin.Context) {
+	m.handler.ServeHTTP(c.Writer, c.Request)
+}
+
+// HandleMCPDelete godoc
+//
+//	@Summary		MCP endpoint — terminate the session (streamable HTTP)
+//	@Description	Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
+//	@Tags			mcp
+//	@Success		202	"Session terminated"
+//	@Router			/mcp [delete]
+//
+//	@id				MCPDelete
+func (m *MCPServer) HandleMCPDelete(c *gin.Context) {
 	m.handler.ServeHTTP(c.Writer, c.Request)
 }

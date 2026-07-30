@@ -72,7 +72,7 @@ public class McpApi {
     }
 
     /**
-     * Build call for mCP
+     * Build call for mCPDelete
      * @param _callback Callback for upload/download progress
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
@@ -80,10 +80,10 @@ public class McpApi {
      <table border="1">
        <caption>Response Details</caption>
         <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+        <tr><td> 202 </td><td> Session terminated </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call mCPCall(final ApiCallback _callback) throws ApiException {
+    public okhttp3.Call mCPDeleteCall(final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -123,50 +123,50 @@ public class McpApi {
         }
 
         String[] localVarAuthNames = new String[] {  };
-        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+        return localVarApiClient.buildCall(basePath, localVarPath, "DELETE", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call mCPValidateBeforeCall(final ApiCallback _callback) throws ApiException {
-        return mCPCall(_callback);
+    private okhttp3.Call mCPDeleteValidateBeforeCall(final ApiCallback _callback) throws ApiException {
+        return mCPDeleteCall(_callback);
 
     }
 
     /**
-     * MCP endpoint (streamable HTTP)
-     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect.
+     * MCP endpoint — terminate the session (streamable HTTP)
+     * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      * @http.response.details
      <table border="1">
        <caption>Response Details</caption>
         <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+        <tr><td> 202 </td><td> Session terminated </td><td>  -  </td></tr>
      </table>
      */
-    public void mCP() throws ApiException {
-        mCPWithHttpInfo();
+    public void mCPDelete() throws ApiException {
+        mCPDeleteWithHttpInfo();
     }
 
     /**
-     * MCP endpoint (streamable HTTP)
-     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect.
+     * MCP endpoint — terminate the session (streamable HTTP)
+     * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      * @http.response.details
      <table border="1">
        <caption>Response Details</caption>
         <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+        <tr><td> 202 </td><td> Session terminated </td><td>  -  </td></tr>
      </table>
      */
-    public ApiResponse<Void> mCPWithHttpInfo() throws ApiException {
-        okhttp3.Call localVarCall = mCPValidateBeforeCall(null);
+    public ApiResponse<Void> mCPDeleteWithHttpInfo() throws ApiException {
+        okhttp3.Call localVarCall = mCPDeleteValidateBeforeCall(null);
         return localVarApiClient.execute(localVarCall);
     }
 
     /**
-     * MCP endpoint (streamable HTTP) (asynchronously)
-     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect.
+     * MCP endpoint — terminate the session (streamable HTTP) (asynchronously)
+     * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
      * @param _callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
@@ -174,12 +174,246 @@ public class McpApi {
      <table border="1">
        <caption>Response Details</caption>
         <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> OK </td><td>  -  </td></tr>
+        <tr><td> 202 </td><td> Session terminated </td><td>  -  </td></tr>
      </table>
      */
-    public okhttp3.Call mCPAsync(final ApiCallback<Void> _callback) throws ApiException {
+    public okhttp3.Call mCPDeleteAsync(final ApiCallback<Void> _callback) throws ApiException {
 
-        okhttp3.Call localVarCall = mCPValidateBeforeCall(_callback);
+        okhttp3.Call localVarCall = mCPDeleteValidateBeforeCall(_callback);
+        localVarApiClient.executeAsync(localVarCall, _callback);
+        return localVarCall;
+    }
+    /**
+     * Build call for mCPGet
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call mCPGetCall(final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = null;
+
+        // create path and map variables
+        String localVarPath = "/mcp";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call mCPGetValidateBeforeCall(final ApiCallback _callback) throws ApiException {
+        return mCPGetCall(_callback);
+
+    }
+
+    /**
+     * MCP endpoint — open the SSE stream (streamable HTTP)
+     * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public void mCPGet() throws ApiException {
+        mCPGetWithHttpInfo();
+    }
+
+    /**
+     * MCP endpoint — open the SSE stream (streamable HTTP)
+     * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+     * @return ApiResponse&lt;Void&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<Void> mCPGetWithHttpInfo() throws ApiException {
+        okhttp3.Call localVarCall = mCPGetValidateBeforeCall(null);
+        return localVarApiClient.execute(localVarCall);
+    }
+
+    /**
+     * MCP endpoint — open the SSE stream (streamable HTTP) (asynchronously)
+     * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call mCPGetAsync(final ApiCallback<Void> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = mCPGetValidateBeforeCall(_callback);
+        localVarApiClient.executeAsync(localVarCall, _callback);
+        return localVarCall;
+    }
+    /**
+     * Build call for mCPPost
+     * @param message JSON-RPC 2.0 request message (e.g. tools/call) (required)
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> JSON-RPC response or SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call mCPPostCall(@javax.annotation.Nonnull Object message, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = message;
+
+        // create path and map variables
+        String localVarPath = "/mcp";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call mCPPostValidateBeforeCall(@javax.annotation.Nonnull Object message, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'message' is set
+        if (message == null) {
+            throw new ApiException("Missing the required parameter 'message' when calling mCPPost(Async)");
+        }
+
+        return mCPPostCall(message, _callback);
+
+    }
+
+    /**
+     * MCP endpoint — send JSON-RPC messages (streamable HTTP)
+     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+     * @param message JSON-RPC 2.0 request message (e.g. tools/call) (required)
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> JSON-RPC response or SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public void mCPPost(@javax.annotation.Nonnull Object message) throws ApiException {
+        mCPPostWithHttpInfo(message);
+    }
+
+    /**
+     * MCP endpoint — send JSON-RPC messages (streamable HTTP)
+     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+     * @param message JSON-RPC 2.0 request message (e.g. tools/call) (required)
+     * @return ApiResponse&lt;Void&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> JSON-RPC response or SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<Void> mCPPostWithHttpInfo(@javax.annotation.Nonnull Object message) throws ApiException {
+        okhttp3.Call localVarCall = mCPPostValidateBeforeCall(message, null);
+        return localVarApiClient.execute(localVarCall);
+    }
+
+    /**
+     * MCP endpoint — send JSON-RPC messages (streamable HTTP) (asynchronously)
+     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer &lt;token&gt;) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+     * @param message JSON-RPC 2.0 request message (e.g. tools/call) (required)
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 200 </td><td> JSON-RPC response or SSE event stream </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call mCPPostAsync(@javax.annotation.Nonnull Object message, final ApiCallback<Void> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = mCPPostValidateBeforeCall(message, _callback);
         localVarApiClient.executeAsync(localVarCall, _callback);
         return localVarCall;
     }

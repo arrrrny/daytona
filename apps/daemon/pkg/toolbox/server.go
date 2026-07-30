@@ -171,9 +171,9 @@ func (s *server) Start() error {
 
 	// MCP endpoint (streamable HTTP) — v1 sandbox toolset for MCP-native agents
 	mcpServer := toolboxmcp.NewMCPServer(s.logger, s.WorkDir, s.sessionService)
-	r.POST("/mcp", mcpServer.HandleMCP)
-	r.GET("/mcp", mcpServer.HandleMCP)
-	r.DELETE("/mcp", mcpServer.HandleMCP)
+	r.POST("/mcp", mcpServer.HandleMCPPost)
+	r.GET("/mcp", mcpServer.HandleMCPGet)
+	r.DELETE("/mcp", mcpServer.HandleMCPDelete)
 
 	// keep /project-dir old behavior for backward compatibility
 	r.GET("/project-dir", s.GetUserHomeDir)

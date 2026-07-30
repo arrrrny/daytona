@@ -24,6 +24,13 @@ func (p *Proxy) Authenticate(ctx *gin.Context, sandboxIdOrSignedToken string, po
 		if err != nil {
 			authErrors = append(authErrors, fmt.Sprintf("Bearer token validation error: %v", err))
 		} else if isValid != nil && *isValid {
+			// Agent-access endpoints enforce the same started-state check as
+			// the SSH gateway, regardless of which credential was presented.
+			if allowSshAccessToken {
+				if err := p.ensureSandboxStarted(ctx.Request.Context(), sandboxIdOrSignedToken); err != nil {
+					return sandboxIdOrSignedToken, false, err
+				}
+			}
 			// If authentication successful, remove the Authorization header to prevent it from being forwarded to the sandbox
 			ctx.Request.Header.Del("Authorization")
 			return sandboxIdOrSignedToken, false, nil

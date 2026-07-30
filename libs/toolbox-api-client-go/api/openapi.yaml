@@ -846,6 +846,7 @@ paths:
         in: query
         name: scale
         schema:
+          format: float64
           type: number
       responses:
         "200":
@@ -949,6 +950,7 @@ paths:
         in: query
         name: scale
         schema:
+          format: float64
           type: number
       responses:
         "200":
@@ -1725,20 +1727,56 @@ paths:
       tags:
       - lsp
   /mcp:
-    post:
-      description: "Model Context Protocol endpoint (streamable-HTTP transport) exposing\
-        \ sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files.\
-        \ POST sends JSON-RPC messages (responses are SSE events per the transport);\
-        \ GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization:\
-        \ Bearer <token>) exactly like /process/exec/connect."
-      operationId: MCP
+    delete:
+      description: "Terminates the MCP session per the streamable-HTTP transport.\
+        \ The handler is stateless, so this is a no-op acknowledged for transport\
+        \ compliance."
+      operationId: MCPDelete
+      responses:
+        "202":
+          content: {}
+          description: Session terminated
+      summary: MCP endpoint — terminate the session (streamable HTTP)
+      tags:
+      - mcp
+    get:
+      description: "Opens the server-sent-event stream of the MCP streamable-HTTP\
+        \ transport. Stateless deployments do not emit unsolicited events, so most\
+        \ clients only need POST."
+      operationId: MCPGet
       responses:
         "200":
           content: {}
-          description: OK
-      summary: MCP endpoint (streamable HTTP)
+          description: SSE event stream
+      summary: MCP endpoint — open the SSE stream (streamable HTTP)
       tags:
       - mcp
+    post:
+      description: "Model Context Protocol endpoint (streamable-HTTP transport) exposing\
+        \ sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files.\
+        \ The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call,\
+        \ ...); the response is a JSON-RPC response or an SSE event stream per the\
+        \ transport. The handler is stateless: plain HTTP clients can call tools without\
+        \ the initialize handshake. Authenticate with a scoped SSH access token (Authorization:\
+        \ Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should\
+        \ speak JSON-RPC directly — generated REST clients cannot express the MCP\
+        \ transport."
+      operationId: MCPPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        description: JSON-RPC 2.0 request message (e.g. tools/call)
+        required: true
+      responses:
+        "200":
+          content: {}
+          description: JSON-RPC response or SSE event stream
+      summary: MCP endpoint — send JSON-RPC messages (streamable HTTP)
+      tags:
+      - mcp
+      x-codegen-request-body-name: message
   /port:
     get:
       description: Get a list of all currently active ports
@@ -2651,6 +2689,7 @@ components:
         points:
           items:
             items:
+              format: float64
               type: number
             type: array
           type: array

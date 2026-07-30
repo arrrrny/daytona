@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -168,23 +169,38 @@ func (m *MCPServer) readFile(_ context.Context, _ *mcpsdk.CallToolRequest, args 
 		return toolError("path is required"), readFileResult{}, nil
 	}
 
-	info, err := os.Stat(args.Path)
+	// Open first and validate the opened descriptor: a pre-read os.Stat can be
+	// bypassed by file growth, and special files (e.g. /dev/zero, size 0)
+	// would otherwise make the read allocate without bound.
+	file, err := os.Open(args.Path)
+	if err != nil {
+		return toolError(fmt.Sprintf("failed to open file: %v", err)), readFileResult{}, nil
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
 	if err != nil {
 		return toolError(fmt.Sprintf("failed to stat file: %v", err)), readFileResult{}, nil
 	}
 	if info.IsDir() {
 		return toolError("path is a directory, use fs_list_files instead"), readFileResult{}, nil
 	}
+	if !info.Mode().IsRegular() {
+		return toolError("path is not a regular file"), readFileResult{}, nil
+	}
 	if info.Size() > maxReadFileBytes {
 		return toolError(fmt.Sprintf("file too large (%d bytes, max %d)", info.Size(), maxReadFileBytes)), readFileResult{}, nil
 	}
 
-	content, err := os.ReadFile(args.Path)
+	content, err := io.ReadAll(io.LimitReader(file, maxReadFileBytes+1))
 	if err != nil {
 		return toolError(fmt.Sprintf("failed to read file: %v", err)), readFileResult{}, nil
 	}
+	if len(content) > maxReadFileBytes {
+		return toolError(fmt.Sprintf("file too large (max %d bytes)", maxReadFileBytes)), readFileResult{}, nil
+	}
 
-	out := readFileResult{Path: args.Path, Size: info.Size()}
+	out := readFileResult{Path: args.Path, Size: int64(len(content))}
 	if utf8.Valid(content) {
 		out.Content = string(content)
 	} else {

@@ -196,10 +196,12 @@ func (e *ExecController) handleConnection(ws *websocket.Conn) {
 		case FrameTypeStdin:
 			if err := sess.WriteStdin([]byte(frame.Data)); err != nil {
 				logger.Debug("stdin write failed", "error", err)
+				emit(ErrorFrame{Type: FrameTypeError, Message: fmt.Sprintf("stdin write failed: %v", err)}, false)
 			}
 		case FrameTypeStdinEOF:
 			if err := sess.CloseStdin(); err != nil {
 				logger.Debug("stdin close failed", "error", err)
+				emit(ErrorFrame{Type: FrameTypeError, Message: fmt.Sprintf("stdin close failed: %v", err)}, false)
 			}
 		case FrameTypeSignal:
 			sig, ok := parseSignal(frame.Signal)
@@ -209,6 +211,7 @@ func (e *ExecController) handleConnection(ws *websocket.Conn) {
 			}
 			if err := sess.Signal(sig); err != nil {
 				logger.Debug("signal failed", "signal", frame.Signal, "error", err)
+				emit(ErrorFrame{Type: FrameTypeError, Message: fmt.Sprintf("signal failed: %v", err)}, false)
 			}
 		case FrameTypeResize:
 			if frame.Cols > maxFrameCols || frame.Rows > maxFrameRows {
@@ -220,6 +223,7 @@ func (e *ExecController) handleConnection(ws *websocket.Conn) {
 			}
 			if err := sess.Resize(frame.Cols, frame.Rows); err != nil {
 				logger.Debug("resize failed", "error", err)
+				emit(ErrorFrame{Type: FrameTypeError, Message: fmt.Sprintf("resize failed: %v", err)}, false)
 			}
 		case FrameTypeStart:
 			emit(ErrorFrame{Type: FrameTypeError, Message: "session already started"}, false)

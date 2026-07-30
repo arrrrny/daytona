@@ -406,6 +406,64 @@ module DaytonaToolboxApiClient
       return data, status_code, headers
     end
 
+    # Execute a command or open a shell over a single WebSocket connection
+    # SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :token SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+    # @return [nil]
+    def exec_connect(opts = {})
+      exec_connect_with_http_info(opts)
+      nil
+    end
+
+    # Execute a command or open a shell over a single WebSocket connection
+    # SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\&quot;type\&quot;:\&quot;start\&quot;,\&quot;command\&quot;:\&quot;...\&quot;,\&quot;cwd\&quot;:\&quot;...\&quot;,\&quot;env\&quot;:{...},\&quot;cols\&quot;:...,\&quot;rows\&quot;:...}. When command is omitted, an interactive login shell is started (like bare &#x60;ssh host&#x60;). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection &#x3D; one exec; shell state persists for the lifetime of the connection.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :token SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+    # @return [Array<(nil, Integer, Hash)>] nil, response status code and response headers
+    def exec_connect_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: ProcessApi.exec_connect ...'
+      end
+      # resource path
+      local_var_path = '/process/exec/connect'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'token'] = opts[:'token'] if !opts[:'token'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type]
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || []
+
+      new_options = opts.merge(
+        :operation => :"ProcessApi.exec_connect",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: ProcessApi#exec_connect\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # Execute a command
     # Execute a shell command and return the output and exit code
     # @param request [ExecuteRequest] Command execution request

@@ -48,6 +48,10 @@ func (s *SessionService) WriteInput(sessionId, commandId string, data []byte) er
 		return common_errors.NewNotFoundError(errors.New("session not found"))
 	}
 
+	if session.cmd == nil || session.cmd.Process == nil {
+		return common_errors.NewGoneError(errors.New("session process is not running"))
+	}
+
 	if session.cmd.ProcessState != nil && session.cmd.ProcessState.Exited() {
 		return common_errors.NewGoneError(errors.New("session process has exited"))
 	}
@@ -78,8 +82,14 @@ func (s *SessionService) WriteInput(sessionId, commandId string, data []byte) er
 		return common_errors.NewInternalServerError(fmt.Errorf("failed to configure input pipe: %w", err))
 	}
 
-	if _, err := syscall.Write(fd, data); err != nil {
-		return common_errors.NewInternalServerError(fmt.Errorf("failed to write to input pipe: %w", err))
+	// write(2) may return fewer bytes than requested (partial write), so loop
+	// until the whole frame has been delivered.
+	for remaining := data; len(remaining) > 0; {
+		n, err := syscall.Write(fd, remaining)
+		if err != nil {
+			return common_errors.NewInternalServerError(fmt.Errorf("failed to write to input pipe: %w", err))
+		}
+		remaining = remaining[n:]
 	}
 
 	return nil
@@ -87,8 +97,8 @@ func (s *SessionService) WriteInput(sessionId, commandId string, data []byte) er
 
 // CloseInput delivers stdin EOF to a running command by tearing down the
 // input-holder process that cmdWrapperFormat keeps alive for async commands.
-// Once the holder (and its current `sleep` child, which inherits the FIFO's
-// write end) is gone, the command's stdin sees EOF — SSH channel EOF
+// The holder is a single process (see execute.go), so killing it drops the
+// FIFO's last writer and the command's stdin sees EOF — SSH channel EOF
 // semantics. Best effort: if the holder is not up yet or already gone, the
 // command's stdin stays as-is and nil is returned.
 func (s *SessionService) CloseInput(sessionId, commandId string) error {
@@ -117,12 +127,16 @@ func (s *SessionService) CloseInput(sessionId, commandId string) error {
 		return nil
 	}
 
-	// Kill the holder's children first (the current `sleep 3600` inherits the
-	// FIFO's write end and would keep stdin open), then the holder itself.
+	// Kill the holder (and any descendants, defensively) so no process keeps
+	// the FIFO's write end open.
 	_ = s.signalProcessTree(pid, syscall.SIGKILL)
 	if holder, err := os.FindProcess(pid); err == nil {
 		_ = holder.Signal(syscall.SIGKILL)
 	}
+
+	// The pid file is single-use: remove it so a later CloseInput doesn't
+	// signal a recycled PID.
+	_ = os.Remove(pidFilePath)
 
 	return nil
 }

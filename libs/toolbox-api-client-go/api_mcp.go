@@ -22,55 +22,81 @@ import (
 type McpAPI interface {
 
 	/*
-	MCP MCP endpoint (streamable HTTP)
+	MCPDelete MCP endpoint — terminate the session (streamable HTTP)
 
-	Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
+	Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return McpAPIMCPRequest
+	@return McpAPIMCPDeleteRequest
 	*/
-	MCP(ctx context.Context) McpAPIMCPRequest
+	MCPDelete(ctx context.Context) McpAPIMCPDeleteRequest
 
-	// MCPExecute executes the request
-	MCPExecute(r McpAPIMCPRequest) (*http.Response, error)
+	// MCPDeleteExecute executes the request
+	MCPDeleteExecute(r McpAPIMCPDeleteRequest) (*http.Response, error)
+
+	/*
+	MCPGet MCP endpoint — open the SSE stream (streamable HTTP)
+
+	Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return McpAPIMCPGetRequest
+	*/
+	MCPGet(ctx context.Context) McpAPIMCPGetRequest
+
+	// MCPGetExecute executes the request
+	MCPGetExecute(r McpAPIMCPGetRequest) (*http.Response, error)
+
+	/*
+	MCPPost MCP endpoint — send JSON-RPC messages (streamable HTTP)
+
+	Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return McpAPIMCPPostRequest
+	*/
+	MCPPost(ctx context.Context) McpAPIMCPPostRequest
+
+	// MCPPostExecute executes the request
+	MCPPostExecute(r McpAPIMCPPostRequest) (*http.Response, error)
 }
 
 // McpAPIService McpAPI service
 type McpAPIService service
 
-type McpAPIMCPRequest struct {
+type McpAPIMCPDeleteRequest struct {
 	ctx context.Context
 	ApiService McpAPI
 }
 
-func (r McpAPIMCPRequest) Execute() (*http.Response, error) {
-	return r.ApiService.MCPExecute(r)
+func (r McpAPIMCPDeleteRequest) Execute() (*http.Response, error) {
+	return r.ApiService.MCPDeleteExecute(r)
 }
 
 /*
-MCP MCP endpoint (streamable HTTP)
+MCPDelete MCP endpoint — terminate the session (streamable HTTP)
 
-Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
+Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return McpAPIMCPRequest
+ @return McpAPIMCPDeleteRequest
 */
-func (a *McpAPIService) MCP(ctx context.Context) McpAPIMCPRequest {
-	return McpAPIMCPRequest{
+func (a *McpAPIService) MCPDelete(ctx context.Context) McpAPIMCPDeleteRequest {
+	return McpAPIMCPDeleteRequest{
 		ApiService: a,
 		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-func (a *McpAPIService) MCPExecute(r McpAPIMCPRequest) (*http.Response, error) {
+func (a *McpAPIService) MCPDeleteExecute(r McpAPIMCPDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
+		localVarHTTPMethod   = http.MethodDelete
 		localVarPostBody     interface{}
 		formFiles            []formFile
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpAPIService.MCP")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpAPIService.MCPDelete")
 	if err != nil {
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -98,6 +124,194 @@ func (a *McpAPIService) MCPExecute(r McpAPIMCPRequest) (*http.Response, error) {
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type McpAPIMCPGetRequest struct {
+	ctx context.Context
+	ApiService McpAPI
+}
+
+func (r McpAPIMCPGetRequest) Execute() (*http.Response, error) {
+	return r.ApiService.MCPGetExecute(r)
+}
+
+/*
+MCPGet MCP endpoint — open the SSE stream (streamable HTTP)
+
+Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return McpAPIMCPGetRequest
+*/
+func (a *McpAPIService) MCPGet(ctx context.Context) McpAPIMCPGetRequest {
+	return McpAPIMCPGetRequest{
+		ApiService: a,
+		ctx: ctx,
+	}
+}
+
+// Execute executes the request
+func (a *McpAPIService) MCPGetExecute(r McpAPIMCPGetRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpAPIService.MCPGet")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/mcp"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type McpAPIMCPPostRequest struct {
+	ctx context.Context
+	ApiService McpAPI
+	message *map[string]interface{}
+}
+
+// JSON-RPC 2.0 request message (e.g. tools/call)
+func (r McpAPIMCPPostRequest) Message(message map[string]interface{}) McpAPIMCPPostRequest {
+	r.message = &message
+	return r
+}
+
+func (r McpAPIMCPPostRequest) Execute() (*http.Response, error) {
+	return r.ApiService.MCPPostExecute(r)
+}
+
+/*
+MCPPost MCP endpoint — send JSON-RPC messages (streamable HTTP)
+
+Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return McpAPIMCPPostRequest
+*/
+func (a *McpAPIService) MCPPost(ctx context.Context) McpAPIMCPPostRequest {
+	return McpAPIMCPPostRequest{
+		ApiService: a,
+		ctx: ctx,
+	}
+}
+
+// Execute executes the request
+func (a *McpAPIService) MCPPostExecute(r McpAPIMCPPostRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "McpAPIService.MCPPost")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/mcp"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.message == nil {
+		return nil, reportError("message is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.message
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return nil, err

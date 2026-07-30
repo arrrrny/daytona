@@ -27,12 +27,73 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 export const McpApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
-         * @summary MCP endpoint (streamable HTTP)
+         * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
+         * @summary MCP endpoint — terminate the session (streamable HTTP)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        mCP: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        mCPDelete: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/mcp`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+         * @summary MCP endpoint — open the SSE stream (streamable HTTP)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        mCPGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/mcp`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+         * @summary MCP endpoint — send JSON-RPC messages (streamable HTTP)
+         * @param {object} message JSON-RPC 2.0 request message (e.g. tools/call)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        mCPPost: async (message: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'message' is not null or undefined
+            assertParamExists('mCPPost', 'message', message)
             const localVarPath = `/mcp`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -45,10 +106,12 @@ export const McpApiAxiosParamCreator = function (configuration?: Configuration) 
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Content-Type'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(message, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -65,15 +128,40 @@ export const McpApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = McpApiAxiosParamCreator(configuration)
     return {
         /**
-         * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
-         * @summary MCP endpoint (streamable HTTP)
+         * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
+         * @summary MCP endpoint — terminate the session (streamable HTTP)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async mCP(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.mCP(options);
+        async mCPDelete(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.mCPDelete(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['McpApi.mCP']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['McpApi.mCPDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+         * @summary MCP endpoint — open the SSE stream (streamable HTTP)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async mCPGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.mCPGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['McpApi.mCPGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+         * @summary MCP endpoint — send JSON-RPC messages (streamable HTTP)
+         * @param {object} message JSON-RPC 2.0 request message (e.g. tools/call)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async mCPPost(message: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.mCPPost(message, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['McpApi.mCPPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -86,13 +174,32 @@ export const McpApiFactory = function (configuration?: Configuration, basePath?:
     const localVarFp = McpApiFp(configuration)
     return {
         /**
-         * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
-         * @summary MCP endpoint (streamable HTTP)
+         * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
+         * @summary MCP endpoint — terminate the session (streamable HTTP)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        mCP(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.mCP(options).then((request) => request(axios, basePath));
+        mCPDelete(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.mCPDelete(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+         * @summary MCP endpoint — open the SSE stream (streamable HTTP)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        mCPGet(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.mCPGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+         * @summary MCP endpoint — send JSON-RPC messages (streamable HTTP)
+         * @param {object} message JSON-RPC 2.0 request message (e.g. tools/call)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        mCPPost(message: object, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.mCPPost(message, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -102,13 +209,34 @@ export const McpApiFactory = function (configuration?: Configuration, basePath?:
  */
 export class McpApi extends BaseAPI {
     /**
-     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect.
-     * @summary MCP endpoint (streamable HTTP)
+     * Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.
+     * @summary MCP endpoint — terminate the session (streamable HTTP)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public mCP(options?: RawAxiosRequestConfig) {
-        return McpApiFp(this.configuration).mCP(options).then((request) => request(this.axios, this.basePath));
+    public mCPDelete(options?: RawAxiosRequestConfig) {
+        return McpApiFp(this.configuration).mCPDelete(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.
+     * @summary MCP endpoint — open the SSE stream (streamable HTTP)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public mCPGet(options?: RawAxiosRequestConfig) {
+        return McpApiFp(this.configuration).mCPGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.
+     * @summary MCP endpoint — send JSON-RPC messages (streamable HTTP)
+     * @param {object} message JSON-RPC 2.0 request message (e.g. tools/call)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public mCPPost(message: object, options?: RawAxiosRequestConfig) {
+        return McpApiFp(this.configuration).mCPPost(message, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

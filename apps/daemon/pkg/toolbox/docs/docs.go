@@ -1170,6 +1170,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "Scale factor (0.1-1.0)",
                         "name": "scale",
                         "in": "query"
@@ -1302,6 +1303,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "Scale factor (0.1-1.0)",
                         "name": "scale",
                         "in": "query"
@@ -2453,23 +2455,63 @@ const docTemplate = `{
             }
         },
         "/mcp": {
+            "get": {
+                "description": "Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "mcp"
+                ],
+                "summary": "MCP endpoint — open the SSE stream (streamable HTTP)",
+                "operationId": "MCPGet",
+                "responses": {
+                    "200": {
+                        "description": "SSE event stream"
+                    }
+                }
+            },
             "post": {
-                "description": "Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. POST sends JSON-RPC messages (responses are SSE events per the transport); GET opens the SSE stream. Authenticate with a scoped SSH access token (Authorization: Bearer \u003ctoken\u003e) exactly like /process/exec/connect.",
+                "description": "Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer \u003ctoken\u003e) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json",
-                    " text/event-stream"
+                    "text/event-stream"
                 ],
                 "tags": [
                     "mcp"
                 ],
-                "summary": "MCP endpoint (streamable HTTP)",
-                "operationId": "MCP",
+                "summary": "MCP endpoint — send JSON-RPC messages (streamable HTTP)",
+                "operationId": "MCPPost",
+                "parameters": [
+                    {
+                        "description": "JSON-RPC 2.0 request message (e.g. tools/call)",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "JSON-RPC response or SSE event stream"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.",
+                "tags": [
+                    "mcp"
+                ],
+                "summary": "MCP endpoint — terminate the session (streamable HTTP)",
+                "operationId": "MCPDelete",
+                "responses": {
+                    "202": {
+                        "description": "Session terminated"
                     }
                 }
             }
@@ -3525,7 +3567,8 @@ const docTemplate = `{
                     "items": {
                         "type": "array",
                         "items": {
-                            "type": "number"
+                            "type": "number",
+                            "format": "float64"
                         }
                     }
                 },
