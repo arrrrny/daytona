@@ -51,6 +51,7 @@ export enum AuditAction {
   CREATE_SSH_ACCESS = 'create_ssh_access',
   REVOKE_SSH_ACCESS = 'revoke_ssh_access',
   RECOVER = 'recover',
+  FORCE_STOP = 'force_stop',
   REGENERATE_PROXY_API_KEY = 'regenerate_proxy_api_key',
   REGENERATE_SSH_GATEWAY_API_KEY = 'regenerate_ssh_gateway_api_key',
   REGENERATE_SNAPSHOT_MANAGER_CREDENTIALS = 'regenerate_snapshot_manager_credentials',

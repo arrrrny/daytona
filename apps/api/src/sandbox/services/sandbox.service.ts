@@ -82,6 +82,9 @@ import {
 } from '../../common/constants/error-messages'
 import { RedisLockProvider } from '../common/redis-lock.provider'
 import { getStateChangeLockKey } from '../utils/lock-key.util'
+import { Job } from '../entities/job.entity'
+import { JobStatus } from '../enums/job-status.enum'
+import { ResourceType } from '../enums/resource-type.enum'
 import { customAlphabet as customNanoid, nanoid, urlAlphabet } from 'nanoid'
 import { WithInstrumentation } from '../../common/decorators/otel.decorator'
 import { validateMountPaths, validateSubpaths } from '../utils/volume-mount-path-validation.util'
@@ -153,6 +156,8 @@ export class SandboxService {
     private readonly dockerRegistryService: DockerRegistryService,
     @InjectRepository(SandboxFork)
     private readonly sandboxForkRepository: Repository<SandboxFork>,
+    @InjectRepository(Job)
+    private readonly jobRepository: Repository<Job>,
     @Inject(SANDBOX_SEARCH_ADAPTER)
     private readonly sandboxSearchAdapter: SandboxSearchAdapter,
   ) {}
@@ -2185,6 +2190,71 @@ export class SandboxService {
     }
 
     return updatedSandbox
+  }
+
+  /**
+   * Force-stops a sandbox that is stuck in a transient state (e.g. `creating`,
+   * `snapshotting`) because a runner crashed or a job can never complete.
+   *
+   * Unlike `stop`, this bypasses the state/pending checks — that is its entire
+   * purpose: it releases the state-change lock by marking the sandbox ERROR
+   * (which forces `pending=false` via entity invariants) with a clear reason,
+   * fails any incomplete jobs for the sandbox so the unique incomplete-job
+   * index no longer blocks new work, and clears the Redis state-change lock.
+   * The sandbox can then be recovered (`/recover`) or destroyed normally.
+   */
+  async forceStop(sandboxIdOrName: string, organizationId?: string): Promise<Sandbox> {
+    const sandbox = await this.findOneByIdOrName(sandboxIdOrName, organizationId)
+
+    if (String(sandbox.state) === String(sandbox.desiredState) && !sandbox.pending) {
+      throw new BadRequestError('Sandbox is not stuck in a state change — use the regular stop endpoint instead')
+    }
+
+    if (sandbox.state === SandboxState.DESTROYED || sandbox.desiredState === SandboxDesiredState.DESTROYED) {
+      throw new BadRequestError('Sandbox is being destroyed and cannot be force-stopped')
+    }
+
+    const lockKey = getStateChangeLockKey(sandbox.id)
+    if (!(await this.redisLockProvider.lock(lockKey, 60))) {
+      throw new StateChangeInProgressError()
+    }
+
+    try {
+      const updatedSandbox = await this.sandboxRepository.updateWhere(sandbox.id, {
+        updateData: {
+          state: SandboxState.ERROR,
+          desiredState: SandboxDesiredState.STOPPED,
+          errorReason: 'Force-stopped by user while stuck in a state change',
+        },
+        whereCondition: { state: sandbox.state },
+      })
+
+      // Fail incomplete jobs so the unique incomplete-job index no longer
+      // blocks new jobs for this sandbox. Written directly (not via
+      // JobService.updateJobStatus) so the job-state handler does not run:
+      // its completion handlers could legitimately move the sandbox to a
+      // different end state (e.g. SNAPSHOT_SANDBOX restores the pre-snapshot
+      // state) while force-stop's contract is to land on ERROR + STOPPED.
+      const failResult = await this.jobRepository.update(
+        {
+          resourceType: ResourceType.SANDBOX,
+          resourceId: sandbox.id,
+          completedAt: null,
+        },
+        {
+          status: JobStatus.FAILED,
+          errorMessage: 'Job superseded by force-stop',
+          completedAt: new Date(),
+        },
+      )
+      if (failResult.affected) {
+        this.logger.warn(`Force-stop of sandbox ${sandbox.id} failed ${failResult.affected} incomplete job(s)`)
+      }
+
+      return updatedSandbox
+    } finally {
+      await this.redisLockProvider.unlock(lockKey)
+    }
   }
 
   async pause(sandboxIdOrName: string, organization: Organization): Promise<Sandbox> {
