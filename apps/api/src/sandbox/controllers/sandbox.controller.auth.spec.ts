@@ -421,7 +421,10 @@ describe('[AUTH] SandboxController', () => {
     const methodName = trackMethod('validateSshAccess')
     expect(isPublicEndpoint(SandboxController, methodName)).toBe(false)
     expectArrayMatch(getAllowedAuthStrategies(SandboxController, methodName), [AuthStrategyType.API_KEY])
-    expectArrayMatch(getAuthContextGuards(SandboxController, methodName), [SshGatewayAuthContextGuard])
+    expectArrayMatch(getAuthContextGuards(SandboxController, methodName), [
+      SshGatewayAuthContextGuard,
+      ProxyAuthContextGuard,
+    ])
   })
 
   it('getToolboxProxyUrl', () => {

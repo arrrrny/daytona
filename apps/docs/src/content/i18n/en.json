@@ -109,6 +109,8 @@
   "sidebarconfig.vpnConnection": "VPN Connections",
   "sidebarconfig.vpnConnectionDescription": "Connect Daytona Sandboxes to VPN networks.",
   "sidebarconfig.sshAccessDescription": "SSH access to Daytona Sandboxes.",
+  "sidebarconfig.sshOverHttps": "SSH over HTTPS",
+  "sidebarconfig.sshOverHttpsDescription": "SSH-equivalent sandbox access over HTTPS (WebSocket exec + MCP).",
   "sidebarconfig.playground": "Playground",
   "sidebarconfig.playgroundDescription": "Playground for Daytona Sandboxes.",
   "sidebarconfig.preview": "Preview",

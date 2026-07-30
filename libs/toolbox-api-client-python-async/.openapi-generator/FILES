@@ -7,6 +7,7 @@ daytona_toolbox_api_client_async/api/git_api.py
 daytona_toolbox_api_client_async/api/info_api.py
 daytona_toolbox_api_client_async/api/interpreter_api.py
 daytona_toolbox_api_client_async/api/lsp_api.py
+daytona_toolbox_api_client_async/api/mcp_api.py
 daytona_toolbox_api_client_async/api/port_api.py
 daytona_toolbox_api_client_async/api/process_api.py
 daytona_toolbox_api_client_async/api/server_api.py

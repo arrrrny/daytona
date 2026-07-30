@@ -23,6 +23,7 @@ src/main/java/io/daytona/toolbox/client/api/GitApi.java
 src/main/java/io/daytona/toolbox/client/api/InfoApi.java
 src/main/java/io/daytona/toolbox/client/api/InterpreterApi.java
 src/main/java/io/daytona/toolbox/client/api/LspApi.java
+src/main/java/io/daytona/toolbox/client/api/McpApi.java
 src/main/java/io/daytona/toolbox/client/api/PortApi.java
 src/main/java/io/daytona/toolbox/client/api/ProcessApi.java
 src/main/java/io/daytona/toolbox/client/api/ServerApi.java
@@ -130,6 +131,7 @@ src/test/java/io/daytona/toolbox/client/api/GitApiTest.java
 src/test/java/io/daytona/toolbox/client/api/InfoApiTest.java
 src/test/java/io/daytona/toolbox/client/api/InterpreterApiTest.java
 src/test/java/io/daytona/toolbox/client/api/LspApiTest.java
+src/test/java/io/daytona/toolbox/client/api/McpApiTest.java
 src/test/java/io/daytona/toolbox/client/api/PortApiTest.java
 src/test/java/io/daytona/toolbox/client/api/ProcessApiTest.java
 src/test/java/io/daytona/toolbox/client/api/ServerApiTest.java

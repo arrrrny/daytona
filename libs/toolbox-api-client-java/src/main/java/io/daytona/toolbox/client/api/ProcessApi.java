@@ -835,6 +835,126 @@ public class ProcessApi {
         return localVarCall;
     }
     /**
+     * Build call for execConnect
+     * @param token SSH access token (alternative to the Authorization header for WS clients that cannot set headers) (optional)
+     * @param _callback Callback for upload/download progress
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 101 </td><td> Switching Protocols - WebSocket connection established </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call execConnectCall(@javax.annotation.Nullable String token, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = null;
+
+        // create path and map variables
+        String localVarPath = "/process/exec/connect";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        if (token != null) {
+            localVarQueryParams.addAll(localVarApiClient.parameterToPair("token", token));
+        }
+
+        final String[] localVarAccepts = {
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call execConnectValidateBeforeCall(@javax.annotation.Nullable String token, final ApiCallback _callback) throws ApiException {
+        return execConnectCall(token, _callback);
+
+    }
+
+    /**
+     * Execute a command or open a shell over a single WebSocket connection
+     * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\&quot;type\&quot;:\&quot;start\&quot;,\&quot;command\&quot;:\&quot;...\&quot;,\&quot;cwd\&quot;:\&quot;...\&quot;,\&quot;env\&quot;:{...},\&quot;cols\&quot;:...,\&quot;rows\&quot;:...}. When command is omitted, an interactive login shell is started (like bare &#x60;ssh host&#x60;). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection &#x3D; one exec; shell state persists for the lifetime of the connection.
+     * @param token SSH access token (alternative to the Authorization header for WS clients that cannot set headers) (optional)
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 101 </td><td> Switching Protocols - WebSocket connection established </td><td>  -  </td></tr>
+     </table>
+     */
+    public void execConnect(@javax.annotation.Nullable String token) throws ApiException {
+        execConnectWithHttpInfo(token);
+    }
+
+    /**
+     * Execute a command or open a shell over a single WebSocket connection
+     * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\&quot;type\&quot;:\&quot;start\&quot;,\&quot;command\&quot;:\&quot;...\&quot;,\&quot;cwd\&quot;:\&quot;...\&quot;,\&quot;env\&quot;:{...},\&quot;cols\&quot;:...,\&quot;rows\&quot;:...}. When command is omitted, an interactive login shell is started (like bare &#x60;ssh host&#x60;). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection &#x3D; one exec; shell state persists for the lifetime of the connection.
+     * @param token SSH access token (alternative to the Authorization header for WS clients that cannot set headers) (optional)
+     * @return ApiResponse&lt;Void&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 101 </td><td> Switching Protocols - WebSocket connection established </td><td>  -  </td></tr>
+     </table>
+     */
+    public ApiResponse<Void> execConnectWithHttpInfo(@javax.annotation.Nullable String token) throws ApiException {
+        okhttp3.Call localVarCall = execConnectValidateBeforeCall(token, null);
+        return localVarApiClient.execute(localVarCall);
+    }
+
+    /**
+     * Execute a command or open a shell over a single WebSocket connection (asynchronously)
+     * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\&quot;type\&quot;:\&quot;start\&quot;,\&quot;command\&quot;:\&quot;...\&quot;,\&quot;cwd\&quot;:\&quot;...\&quot;,\&quot;env\&quot;:{...},\&quot;cols\&quot;:...,\&quot;rows\&quot;:...}. When command is omitted, an interactive login shell is started (like bare &#x60;ssh host&#x60;). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection &#x3D; one exec; shell state persists for the lifetime of the connection.
+     * @param token SSH access token (alternative to the Authorization header for WS clients that cannot set headers) (optional)
+     * @param _callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     * @http.response.details
+     <table border="1">
+       <caption>Response Details</caption>
+        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+        <tr><td> 101 </td><td> Switching Protocols - WebSocket connection established </td><td>  -  </td></tr>
+     </table>
+     */
+    public okhttp3.Call execConnectAsync(@javax.annotation.Nullable String token, final ApiCallback<Void> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = execConnectValidateBeforeCall(token, _callback);
+        localVarApiClient.executeAsync(localVarCall, _callback);
+        return localVarCall;
+    }
+    /**
      * Build call for executeCommand
      * @param request Command execution request (required)
      * @param _callback Callback for upload/download progress

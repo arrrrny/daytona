@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from daytona_toolbox_api_client_async.api.info_api import InfoApi
     from daytona_toolbox_api_client_async.api.interpreter_api import InterpreterApi
     from daytona_toolbox_api_client_async.api.lsp_api import LspApi
+    from daytona_toolbox_api_client_async.api.mcp_api import McpApi
     from daytona_toolbox_api_client_async.api.port_api import PortApi
     from daytona_toolbox_api_client_async.api.process_api import ProcessApi
     from daytona_toolbox_api_client_async.api.server_api import ServerApi
@@ -25,6 +26,7 @@ _DYNAMIC_IMPORTS: dict[str, str] = {
     "InfoApi": "daytona_toolbox_api_client_async.api.info_api",
     "InterpreterApi": "daytona_toolbox_api_client_async.api.interpreter_api",
     "LspApi": "daytona_toolbox_api_client_async.api.lsp_api",
+    "McpApi": "daytona_toolbox_api_client_async.api.mcp_api",
     "PortApi": "daytona_toolbox_api_client_async.api.port_api",
     "ProcessApi": "daytona_toolbox_api_client_async.api.process_api",
     "ServerApi": "daytona_toolbox_api_client_async.api.server_api",

@@ -80,6 +80,8 @@
   "sidebarconfig.webTerminalDescription": "Daytona サンドボックス（Daytonaが管理する隔離された一時的な実行環境）へのWebターミナルアクセス。",
   "sidebarconfig.sshAccess": "SSHアクセス",
   "sidebarconfig.sshAccessDescription": "Daytona サンドボックス（Daytonaが管理する隔離された一時的な実行環境）へのSSHアクセス。",
+  "sidebarconfig.sshOverHttps": "HTTPS 経由の SSH",
+  "sidebarconfig.sshOverHttpsDescription": "HTTPS 経由の SSH 相当サンドボックスアクセス（WebSocket exec + MCP）。",
   "sidebarconfig.previewAuthentication": "プレビューと認証",
   "sidebarconfig.previewAuthenticationDescription": "プレビューURLと認証トークン。",
   "sidebarconfig.customDomainAuthentication": "カスタムプレビュープロキシ",

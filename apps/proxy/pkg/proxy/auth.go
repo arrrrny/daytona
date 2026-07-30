@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (p *Proxy) Authenticate(ctx *gin.Context, sandboxIdOrSignedToken string, port float32) (sandboxId string, didRedirect bool, err error) {
+func (p *Proxy) Authenticate(ctx *gin.Context, sandboxIdOrSignedToken string, port float32, allowSshAccessToken bool) (sandboxId string, didRedirect bool, err error) {
 	var authErrors []string
 
 	// Try Authorization header with Bearer token
@@ -24,11 +24,49 @@ func (p *Proxy) Authenticate(ctx *gin.Context, sandboxIdOrSignedToken string, po
 		if err != nil {
 			authErrors = append(authErrors, fmt.Sprintf("Bearer token validation error: %v", err))
 		} else if isValid != nil && *isValid {
+			// Agent-access endpoints enforce the same started-state check as
+			// the SSH gateway, regardless of which credential was presented.
+			if allowSshAccessToken {
+				if err := p.ensureSandboxStarted(ctx.Request.Context(), sandboxIdOrSignedToken); err != nil {
+					return sandboxIdOrSignedToken, false, err
+				}
+			}
 			// If authentication successful, remove the Authorization header to prevent it from being forwarded to the sandbox
 			ctx.Request.Header.Del("Authorization")
 			return sandboxIdOrSignedToken, false, nil
 		} else {
 			authErrors = append(authErrors, "Bearer token is invalid")
+		}
+	}
+
+	// Agent-access endpoints additionally accept SSH access tokens (Bearer or
+	// ?token= query for WebSocket clients that cannot set headers).
+	if allowSshAccessToken {
+		sshToken, fromQuery := bearerToken, false
+		if sshToken == "" {
+			sshToken, fromQuery = ctx.Query(SSH_ACCESS_TOKEN_QUERY_PARAM), true
+		}
+		if sshToken != "" {
+			isValid, err := p.getSshAccessTokenValid(ctx.Request.Context(), sandboxIdOrSignedToken, sshToken)
+			if err != nil {
+				authErrors = append(authErrors, fmt.Sprintf("SSH access token validation error: %v", err))
+			} else if isValid != nil && *isValid {
+				// A valid token was presented: enforce the same started-state
+				// check as the SSH gateway and fail fast on its result.
+				if err := p.ensureSandboxStarted(ctx.Request.Context(), sandboxIdOrSignedToken); err != nil {
+					return sandboxIdOrSignedToken, false, err
+				}
+				// Do not forward the credential to the sandbox
+				ctx.Request.Header.Del("Authorization")
+				if fromQuery {
+					newQuery := ctx.Request.URL.Query()
+					newQuery.Del(SSH_ACCESS_TOKEN_QUERY_PARAM)
+					ctx.Request.URL.RawQuery = newQuery.Encode()
+				}
+				return sandboxIdOrSignedToken, false, nil
+			} else {
+				authErrors = append(authErrors, "SSH access token is invalid")
+			}
 		}
 	}
 

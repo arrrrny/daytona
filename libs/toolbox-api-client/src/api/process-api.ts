@@ -263,6 +263,40 @@ export const ProcessApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+         * @summary Execute a command or open a shell over a single WebSocket connection
+         * @param {string} [token] SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        execConnect: async (token?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/process/exec/connect`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (token !== undefined) {
+                localVarQueryParameter['token'] = token;
+            }
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Execute a shell command and return the output and exit code
          * @summary Execute a command
          * @param {ExecuteRequest} request Command execution request
@@ -779,6 +813,19 @@ export const ProcessApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+         * @summary Execute a command or open a shell over a single WebSocket connection
+         * @param {string} [token] SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async execConnect(token?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.execConnect(token, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProcessApi.execConnect']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Execute a shell command and return the output and exit code
          * @summary Execute a command
          * @param {ExecuteRequest} request Command execution request
@@ -1008,6 +1055,16 @@ export const ProcessApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.deleteSession(sessionId, options).then((request) => request(axios, basePath));
         },
         /**
+         * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+         * @summary Execute a command or open a shell over a single WebSocket connection
+         * @param {string} [token] SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        execConnect(token?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.execConnect(token, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Execute a shell command and return the output and exit code
          * @summary Execute a command
          * @param {ExecuteRequest} request Command execution request
@@ -1202,6 +1259,17 @@ export class ProcessApi extends BaseAPI {
      */
     public deleteSession(sessionId: string, options?: RawAxiosRequestConfig) {
         return ProcessApiFp(this.configuration).deleteSession(sessionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+     * @summary Execute a command or open a shell over a single WebSocket connection
+     * @param {string} [token] SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public execConnect(token?: string, options?: RawAxiosRequestConfig) {
+        return ProcessApiFp(this.configuration).execConnect(token, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

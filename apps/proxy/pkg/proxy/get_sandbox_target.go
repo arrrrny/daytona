@@ -70,7 +70,7 @@ func (p *Proxy) GetProxyTarget(ctx *gin.Context) (*url.URL, map[string]string, e
 			return nil, nil, fmt.Errorf("failed to parse target port: %w", err)
 		}
 		var didRedirect bool
-		sandboxId, didRedirect, err = p.Authenticate(ctx, sandboxIdOrSignedToken, float32(portFloat))
+		sandboxId, didRedirect, err = p.Authenticate(ctx, sandboxIdOrSignedToken, float32(portFloat), isAgentAccessPath(targetPath))
 		if err != nil {
 			if !didRedirect {
 				ctx.Error(err)

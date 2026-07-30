@@ -107,6 +107,19 @@ type ProcessAPI interface {
 	DeleteSessionExecute(r ProcessAPIDeleteSessionRequest) (*http.Response, error)
 
 	/*
+	ExecConnect Execute a command or open a shell over a single WebSocket connection
+
+	SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {"type":"start","command":"...","cwd":"...","env":{...},"cols":...,"rows":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ProcessAPIExecConnectRequest
+	*/
+	ExecConnect(ctx context.Context) ProcessAPIExecConnectRequest
+
+	// ExecConnectExecute executes the request
+	ExecConnectExecute(r ProcessAPIExecConnectRequest) (*http.Response, error)
+
+	/*
 	ExecuteCommand Execute a command
 
 	Execute a shell command and return the output and exit code
@@ -851,6 +864,104 @@ func (a *ProcessAPIService) DeleteSessionExecute(r ProcessAPIDeleteSessionReques
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type ProcessAPIExecConnectRequest struct {
+	ctx context.Context
+	ApiService ProcessAPI
+	token *string
+}
+
+// SSH access token (alternative to the Authorization header for WS clients that cannot set headers)
+func (r ProcessAPIExecConnectRequest) Token(token string) ProcessAPIExecConnectRequest {
+	r.token = &token
+	return r
+}
+
+func (r ProcessAPIExecConnectRequest) Execute() (*http.Response, error) {
+	return r.ApiService.ExecConnectExecute(r)
+}
+
+/*
+ExecConnect Execute a command or open a shell over a single WebSocket connection
+
+SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {"type":"start","command":"...","cwd":"...","env":{...},"cols":...,"rows":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ProcessAPIExecConnectRequest
+*/
+func (a *ProcessAPIService) ExecConnect(ctx context.Context) ProcessAPIExecConnectRequest {
+	return ProcessAPIExecConnectRequest{
+		ApiService: a,
+		ctx: ctx,
+	}
+}
+
+// Execute executes the request
+func (a *ProcessAPIService) ExecConnectExecute(r ProcessAPIExecConnectRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ProcessAPIService.ExecConnect")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/process/exec/connect"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.token != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "token", r.token, "", "")
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 

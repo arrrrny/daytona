@@ -1449,7 +1449,7 @@ export class SandboxController {
     type: SshAccessValidationDto,
   })
   @AuthStrategy(AuthStrategyType.API_KEY)
-  @UseGuards(SshGatewayAuthContextGuard)
+  @UseGuards(OrGuard([SshGatewayAuthContextGuard, ProxyAuthContextGuard]))
   async validateSshAccess(@Query('token') token: string): Promise<SshAccessValidationDto> {
     const result = await this.sandboxService.validateSshAccess(token)
     return SshAccessValidationDto.fromValidationResult(result.valid, result.sandboxId)

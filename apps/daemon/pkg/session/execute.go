@@ -62,7 +62,11 @@ func (s *SessionService) Execute(sessionId, cmdId, cmd string, async, isCombined
 
 	inputPipeCommand := `cat /dev/null > "$ip" &`
 	if async {
-		inputPipeCommand = `while :; do sleep 3600; done > "$ip" &`
+		// The holder must be a single process: killing the recorded PID alone
+		// must drop the FIFO's last writer so CloseInput delivers EOF
+		// immediately. A `while :; do sleep; done` loop leaves its sleep child
+		// holding the FIFO open after the loop shell is killed.
+		inputPipeCommand = `exec tail -f /dev/null > "$ip" &`
 	}
 
 	cmdToExec := fmt.Sprintf(cmdWrapperFormat+"\n",
@@ -215,6 +219,9 @@ var cmdWrapperFormat string = `
 	# Sync commands should see EOF immediately; async commands keep stdin open for SendInput.
 	%s
 	ip_pid=$!
+
+	# Record the input-holder PID so CloseInput can deliver stdin EOF later.
+	echo "$ip_pid" > "$dir/input_holder.pid" 2>/dev/null || true
 
 	# Run your command from file (avoids heredoc parsing issues with pipe-fed shells)
 	{ . %q; } < "$ip" > "$sp" 2> "$ep"

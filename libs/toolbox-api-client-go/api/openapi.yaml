@@ -846,6 +846,7 @@ paths:
         in: query
         name: scale
         schema:
+          format: float64
           type: number
       responses:
         "200":
@@ -949,6 +950,7 @@ paths:
         in: query
         name: scale
         schema:
+          format: float64
           type: number
       responses:
         "200":
@@ -1724,6 +1726,57 @@ paths:
       summary: Get workspace symbols
       tags:
       - lsp
+  /mcp:
+    delete:
+      description: "Terminates the MCP session per the streamable-HTTP transport.\
+        \ The handler is stateless, so this is a no-op acknowledged for transport\
+        \ compliance."
+      operationId: MCPDelete
+      responses:
+        "202":
+          content: {}
+          description: Session terminated
+      summary: MCP endpoint — terminate the session (streamable HTTP)
+      tags:
+      - mcp
+    get:
+      description: "Opens the server-sent-event stream of the MCP streamable-HTTP\
+        \ transport. Stateless deployments do not emit unsolicited events, so most\
+        \ clients only need POST."
+      operationId: MCPGet
+      responses:
+        "200":
+          content: {}
+          description: SSE event stream
+      summary: MCP endpoint — open the SSE stream (streamable HTTP)
+      tags:
+      - mcp
+    post:
+      description: "Model Context Protocol endpoint (streamable-HTTP transport) exposing\
+        \ sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files.\
+        \ The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call,\
+        \ ...); the response is a JSON-RPC response or an SSE event stream per the\
+        \ transport. The handler is stateless: plain HTTP clients can call tools without\
+        \ the initialize handshake. Authenticate with a scoped SSH access token (Authorization:\
+        \ Bearer <token>) exactly like /process/exec/connect. NOTE: MCP clients should\
+        \ speak JSON-RPC directly — generated REST clients cannot express the MCP\
+        \ transport."
+      operationId: MCPPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        description: JSON-RPC 2.0 request message (e.g. tools/call)
+        required: true
+      responses:
+        "200":
+          content: {}
+          description: JSON-RPC response or SSE event stream
+      summary: MCP endpoint — send JSON-RPC messages (streamable HTTP)
+      tags:
+      - mcp
+      x-codegen-request-body-name: message
   /port:
     get:
       description: Get a list of all currently active ports
@@ -1782,6 +1835,30 @@ paths:
       tags:
       - process
       x-codegen-request-body-name: request
+  /process/exec/connect:
+    get:
+      description: "SSH-equivalent exec channel over HTTPS. After the upgrade the\
+        \ client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\"\
+        :\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted,\
+        \ an interactive login shell is started (like bare `ssh host`). Subsequent\
+        \ client frames: stdin, signal, resize, stdin_eof. Server frames: stdout,\
+        \ stderr, exit (always last, before close), error. One connection = one exec;\
+        \ shell state persists for the lifetime of the connection."
+      operationId: ExecConnect
+      parameters:
+      - description: SSH access token (alternative to the Authorization header for
+          WS clients that cannot set headers)
+        in: query
+        name: token
+        schema:
+          type: string
+      responses:
+        "101":
+          content: {}
+          description: Switching Protocols - WebSocket connection established
+      summary: Execute a command or open a shell over a single WebSocket connection
+      tags:
+      - process
   /process/execute:
     post:
       description: Execute a shell command and return the output and exit code
@@ -2612,6 +2689,7 @@ components:
         points:
           items:
             items:
+              format: float64
               type: number
             type: array
           type: array

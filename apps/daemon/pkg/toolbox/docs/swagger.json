@@ -1027,6 +1027,7 @@
           },
           {
             "type": "number",
+            "format": "float64",
             "description": "Scale factor (0.1-1.0)",
             "name": "scale",
             "in": "query"
@@ -1151,6 +1152,7 @@
           },
           {
             "type": "number",
+            "format": "float64",
             "description": "Scale factor (0.1-1.0)",
             "name": "scale",
             "in": "query"
@@ -2137,6 +2139,55 @@
         }
       }
     },
+    "/mcp": {
+      "get": {
+        "description": "Opens the server-sent-event stream of the MCP streamable-HTTP transport. Stateless deployments do not emit unsolicited events, so most clients only need POST.",
+        "produces": ["text/event-stream"],
+        "tags": ["mcp"],
+        "summary": "MCP endpoint — open the SSE stream (streamable HTTP)",
+        "operationId": "MCPGet",
+        "responses": {
+          "200": {
+            "description": "SSE event stream"
+          }
+        }
+      },
+      "post": {
+        "description": "Model Context Protocol endpoint (streamable-HTTP transport) exposing sandbox tools: exec_command, fs_read_file, fs_write_file, fs_list_files. The request body is a JSON-RPC 2.0 message (initialize, tools/list, tools/call, ...); the response is a JSON-RPC response or an SSE event stream per the transport. The handler is stateless: plain HTTP clients can call tools without the initialize handshake. Authenticate with a scoped SSH access token (Authorization: Bearer \u003ctoken\u003e) exactly like /process/exec/connect. NOTE: MCP clients should speak JSON-RPC directly — generated REST clients cannot express the MCP transport.",
+        "consumes": ["application/json"],
+        "produces": ["application/json", "text/event-stream"],
+        "tags": ["mcp"],
+        "summary": "MCP endpoint — send JSON-RPC messages (streamable HTTP)",
+        "operationId": "MCPPost",
+        "parameters": [
+          {
+            "description": "JSON-RPC 2.0 request message (e.g. tools/call)",
+            "name": "message",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response or SSE event stream"
+          }
+        }
+      },
+      "delete": {
+        "description": "Terminates the MCP session per the streamable-HTTP transport. The handler is stateless, so this is a no-op acknowledged for transport compliance.",
+        "tags": ["mcp"],
+        "summary": "MCP endpoint — terminate the session (streamable HTTP)",
+        "operationId": "MCPDelete",
+        "responses": {
+          "202": {
+            "description": "Session terminated"
+          }
+        }
+      }
+    },
     "/port": {
       "get": {
         "description": "Get a list of all currently active ports",
@@ -2205,6 +2256,27 @@
             "schema": {
               "$ref": "#/definitions/CodeRunResponse"
             }
+          }
+        }
+      }
+    },
+    "/process/exec/connect": {
+      "get": {
+        "description": "SSH-equivalent exec channel over HTTPS. After the upgrade the client sends a start frame: {\"type\":\"start\",\"command\":\"...\",\"cwd\":\"...\",\"env\":{...},\"cols\":...,\"rows\":...}. When command is omitted, an interactive login shell is started (like bare `ssh host`). Subsequent client frames: stdin, signal, resize, stdin_eof. Server frames: stdout, stderr, exit (always last, before close), error. One connection = one exec; shell state persists for the lifetime of the connection.",
+        "tags": ["process"],
+        "summary": "Execute a command or open a shell over a single WebSocket connection",
+        "operationId": "ExecConnect",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "SSH access token (alternative to the Authorization header for WS clients that cannot set headers)",
+            "name": "token",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "Switching Protocols - WebSocket connection established"
           }
         }
       }
@@ -3037,7 +3109,8 @@
           "items": {
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "number",
+              "format": "float64"
             }
           }
         },

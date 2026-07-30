@@ -61,6 +61,8 @@ type APIClient struct {
 
 	LspAPI LspAPI
 
+	McpAPI McpAPI
+
 	PortAPI PortAPI
 
 	ProcessAPI ProcessAPI
@@ -90,6 +92,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.InfoAPI = (*InfoAPIService)(&c.common)
 	c.InterpreterAPI = (*InterpreterAPIService)(&c.common)
 	c.LspAPI = (*LspAPIService)(&c.common)
+	c.McpAPI = (*McpAPIService)(&c.common)
 	c.PortAPI = (*PortAPIService)(&c.common)
 	c.ProcessAPI = (*ProcessAPIService)(&c.common)
 	c.ServerAPI = (*ServerAPIService)(&c.common)
