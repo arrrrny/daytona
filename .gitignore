@@ -108,3 +108,7 @@ result-*
 docker/docker-compose.zuzu.yaml
 zikzak-sandbox/
 docker/dex/config.zuzu.yaml
+.memsearch
+.daytona-backup
+daytona-backup*
+orchestrator.db
