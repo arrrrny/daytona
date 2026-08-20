@@ -111,4 +111,3 @@ docker/dex/config.zuzu.yaml
 .memsearch
 .daytona-backup
 daytona-backup*
-orchestrator.db
