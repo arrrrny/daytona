@@ -59,6 +59,7 @@ services:
 
   registry:
     image: registry:2.8.2
+    container_name: registry
     restart: always
     environment:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://registry-ui.example.com]'
@@ -69,6 +70,29 @@ services:
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - registry:/var/lib/registry
+
+  # Reclaims disk space leaked by the registry: deletes are enabled but blobs
+  # are only removed from disk by garbage collection, which was never
+  # scheduled. Without this the `registry` volume grows unbounded (issue #9).
+  # The registry is stopped during each GC pass to avoid corrupting concurrent writes.
+  registry-gc:
+    image: registry:2.8.2
+    restart: always
+    depends_on:
+      - registry
+    volumes:
+      - registry:/var/lib/registry
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >
+        while true; do
+          sleep 86400;
+          apk add --no-cache docker-cli || true;
+          docker stop registry || true;
+          registry garbage-collect /etc/docker/registry/config.yml || true;
+          docker start registry || true;
+        done
 
   maildev:
     image: maildev/maildev

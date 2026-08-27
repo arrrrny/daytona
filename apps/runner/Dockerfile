@@ -78,4 +78,8 @@ RUN mkdir -p /etc/docker && echo '{"insecure-registries": ["registry:6000"]}' > 
 
 HEALTHCHECK CMD [ "curl", "-f", "http://localhost:3003/" ]
 
-ENTRYPOINT ["sh", "-c", "/usr/local/bin/dockerd-entrypoint.sh & daytona-runner"]
+# Background loop reclaims disk leaked by the runner's internal dockerd: dangling
+# (untagged/superseded) image layers stay in the runner's Docker store and accumulate
+# across releases (see issue #9). Pruning dangling images older than 24h removes
+# unused layers while preserving intentionally cached snapshot images.
+ENTRYPOINT ["sh", "-c", "/usr/local/bin/dockerd-entrypoint.sh & (while true; do sleep 86400; docker image prune -f --filter \"until=24h\" >/dev/null 2>&1 || true; done) & daytona-runner"]
